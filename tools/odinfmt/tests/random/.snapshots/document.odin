@@ -16,7 +16,8 @@ Document :: union {
 	Document_Nest_If_Break,
 }
 
-Document_Nil :: struct {}
+Document_Nil :: struct {
+}
 
 Document_Newline :: struct {
 	amount: int,
