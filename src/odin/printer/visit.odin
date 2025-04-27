@@ -1996,6 +1996,7 @@ visit_struct_field_list :: proc(p: ^Printer, list: ^ast.Field_List, options := L
 
 	for field, i in list.list {
 		align := empty()
+		alignment, last_in_group := get_possible_field_alignment(list.list, i)
 
 		p.source_position = field.pos
 
@@ -2017,9 +2018,7 @@ visit_struct_field_list :: proc(p: ^Printer, list: ^ast.Field_List, options := L
 
 		name_options := List_Options{.Add_Comma}
 
-		if (.Enforce_Newline in options) {
-			alignment := get_possible_field_alignment(list.list)
-
+		if .Enforce_Newline in options {
 			if alignment > 0 {
 				length := 0
 				for name in field.names {
@@ -2057,8 +2056,20 @@ visit_struct_field_list :: proc(p: ^Printer, list: ^ast.Field_List, options := L
 		}
 
 		if i != len(list.list) - 1 && .Enforce_Newline in options {
+			has_line_suffix :: proc(d: ^Document) -> bool {
+				#partial switch d in d {
+				case Document_Cons:
+					for element in d.elements {
+						if has_line_suffix(element) do return true
+					}
+				case Document_Line_Suffix:
+					return true
+				}
+				return false
+			}
 			comment, _ := visit_comments(p, list.list[i + 1].pos)
-			document = cons(document, comment, newline(1))
+			newlines := last_in_group && !has_line_suffix(comment) ? 2 : 1
+			document = cons(document, comment, newline(newlines))
 		} else {
 			comment, _ := visit_comments(p, list.end)
 			document = cons(document, comment)
@@ -2408,10 +2419,20 @@ get_node_length :: proc(node: ^ast.Node) -> int {
 }
 
 @(private)
-get_possible_field_alignment :: proc(fields: []^ast.Field) -> int {
-	longest_name := 0
+get_possible_field_alignment :: proc(fields: []^ast.Field, field_index: int) -> (longest_name: int, last: bool) {
+	prev_field_line_pos := 0
 
-	for field in fields {
+	for field, i in fields {
+		lines_since_last_field := field.pos.line - 1 - prev_field_line_pos
+
+		if prev_field_line_pos != 0 && lines_since_last_field > 0 {
+			if i > field_index {
+				last = i - 1 == field_index
+				break
+			}
+			longest_name = 0
+		}
+
 		length := 0
 		for name in field.names {
 			length += get_node_length(name) + 2
@@ -2422,9 +2443,10 @@ get_possible_field_alignment :: proc(fields: []^ast.Field) -> int {
 		}
 
 		longest_name = max(longest_name, length)
+		prev_field_line_pos = field.pos.line
 	}
 
-	return longest_name
+	return
 }
 
 @(private)
