@@ -1528,7 +1528,7 @@ reflection :: proc() {
 	fmt.println("\n# reflection")
 
 	Foo :: struct {
-		x: int `tag1`,
+		x: int    `tag1`,
 		y: string `json:"y_field"`,
 		z: bool, // no tag
 	}

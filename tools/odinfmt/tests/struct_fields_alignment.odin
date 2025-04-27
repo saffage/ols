@@ -43,7 +43,7 @@ Two_Fields_With_Comments :: struct {
 
 Two_Fields_With_Line_Comments :: struct {
 	first: int, // comment 1
-	second: int, // comment 2
+	second: string, // comment 2
 }
 
 Two_Fields_Separated_With_Comments :: struct {
@@ -67,4 +67,27 @@ Three_Fields_Separated :: struct {
 
 	second: int,
 	third:  int,
+}
+
+Tags :: struct {
+    first:int`foo`,
+    second:string`fizzbuzz`,
+}
+
+Tags_Separated :: struct {
+    first:int                         `foo`,
+
+    second: 		string 	`fizzbuzz`,
+}
+
+Tags_With_Line_Comments :: struct {
+	first:               int`foo`, // 1
+	second:  // 2
+		string     					`fizzbuzz`,
+}
+
+Tags_Separated_With_Line_Comments :: struct {
+	first: int `foo`, // 1
+
+	second: string `fizzbuzz`, // 2
 }
